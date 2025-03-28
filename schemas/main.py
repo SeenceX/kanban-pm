@@ -12,6 +12,8 @@ async def main():
     await AsyncORM.insert_users()
     #await AsyncORM.select_users()
     await AsyncORM.create_project()
+    await AsyncORM.create_stage()
+    await AsyncORM.create_task()
 
 
 if __name__ == "__main__":
