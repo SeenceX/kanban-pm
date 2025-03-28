@@ -2,7 +2,7 @@ from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, 
 from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 
 from database import Base, async_engine, session_factory
-from models import User, Project, ProjectMembership, Stage, Task
+from models import User, Project, ProjectMembership, Stage, Task, Comment
 
 
 class AsyncORM:
@@ -54,12 +54,26 @@ class AsyncORM:
     async def create_task():
         async with session_factory() as session:
             # title, description, status, stage_id, creator_id, assigned_user_id
-            task1 = Task(title="task1", description="Разработать API", status=False, stage_id=1, creator_id=2, assigned_user_id=1)
-            task2 = Task(title="task2", description="Разработать API", status=False, stage_id=2, creator_id=1, assigned_user_id=1)
-            task3 = Task(title="task3", description="Разработать API", status=False, stage_id=2, creator_id=1, assigned_user_id=2)
+            task1 = Task(title="task1", description="Почистить кэш", status=False, stage_id=1, creator_id=2, assigned_user_id=None)
+            task2 = Task(title="task2", description="Разработать запрос на удаление", status=False, stage_id=2, creator_id=1, assigned_user_id=1)
+            task3 = Task(title="task3", description="Разработать интерфейс", status=False, stage_id=2, creator_id=1, assigned_user_id=2)
             task4 = Task(title="task4", description="Разработать API", status=True, stage_id=3, creator_id=1, assigned_user_id=None)
-            task5 = Task(title="task5", description="Разработать API", status=False, stage_id=2, creator_id=1, assigned_user_id=2)
-            task6 = Task(title="task6", description="Разработать API", status=False, stage_id=1, creator_id=2, assigned_user_id=2)
+            task5 = Task(title="task5", description="Протестировать API", status=False, stage_id=1, creator_id=1, assigned_user_id=None)
+            task6 = Task(title="task6", description="Улыбнуться", status=False, stage_id=1, creator_id=2, assigned_user_id=2)
+            
             session.add_all([task1, task2, task3, task4, task5, task6])
+            await session.flush()
+            await session.commit()
+
+    @staticmethod
+    async def create_comment():
+        async with session_factory() as session:
+            comment1 = Comment(text="Привет!", task_id=2, author_id=1)
+            comment2 = Comment(text="Привет!", task_id=2, author_id=2)
+            comment3 = Comment(text="Получается?", task_id=2, author_id=1)
+            comment4 = Comment(text="Да", task_id=2, author_id=2)
+            comment5 = Comment(text="Нужно обдумать", task_id=5, author_id=1)
+
+            session.add_all([comment1, comment2, comment3, comment4, comment5])
             await session.flush()
             await session.commit()

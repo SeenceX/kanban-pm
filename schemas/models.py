@@ -52,6 +52,11 @@ class User(Base):
         foreign_keys="[Task.assigned_user_id]"
     )
 
+    comments: Mapped[List["Comment"]] = relationship(
+        back_populates="author",
+        foreign_keys="[Comment.author_id]"
+    )
+
     project_memberships: Mapped[List["ProjectMembership"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan"
@@ -130,5 +135,23 @@ class Task(Base):
     
     assigned_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     assigned_user: Mapped["User"] = relationship(back_populates="assigned_tasks", foreign_keys=[assigned_user_id])
+
+    comments: Mapped[List["Comment"]] = relationship(
+        back_populates="task",
+        cascade="all, delete-orphan",
+        order_by="Comment.created_at")
     
 
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[intpk]
+    text: Mapped[str] = mapped_column(String(256))
+
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id", ondelete="CASCADE"))
+    task: Mapped["Task"] = relationship(back_populates="comments")
+    
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    author: Mapped["User"] = relationship(back_populates="comments", foreign_keys=[author_id])
+
+    created_at: Mapped[created_at]

@@ -14,6 +14,7 @@ async def main():
     await AsyncORM.create_project()
     await AsyncORM.create_stage()
     await AsyncORM.create_task()
+    await AsyncORM.create_comment()
 
 
 if __name__ == "__main__":
