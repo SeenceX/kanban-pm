@@ -2,7 +2,7 @@ from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, 
 from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 
 from database import Base, async_engine, session_factory
-from models import User
+from models import User, Project, ProjectMembership
 
 
 class AsyncORM:
@@ -29,3 +29,11 @@ class AsyncORM:
             result = await session.execute(query)
             users = result.scalars().all()
             print(f"{users=}")
+
+    @staticmethod
+    async def create_project():
+        async with session_factory() as session:
+            project1 = Project(title="My great project", creator_id=1)
+            session.add_all([project1])
+            await session.flush()
+            await session.commit()

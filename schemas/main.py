@@ -1,6 +1,5 @@
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
-from models import User
 from database import async_engine
 import asyncio
 
@@ -11,7 +10,8 @@ session = Session(async_engine)
 async def main():
     await AsyncORM.create_tables()
     await AsyncORM.insert_users()
-    await AsyncORM.select_users()
+    #await AsyncORM.select_users()
+    await AsyncORM.create_project()
 
 
 if __name__ == "__main__":
