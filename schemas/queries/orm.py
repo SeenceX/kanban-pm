@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text
+from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text, delete, update
 from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from asyncpg.exceptions import UniqueViolationError
@@ -80,6 +80,7 @@ class AsyncORM:
             result = await session.execute(query)
             users = result.scalars().all()
             return users
+        
 
     @staticmethod
     async def select_projects():
@@ -123,19 +124,147 @@ class AsyncORM:
             await session.flush()
             await session.commit()
             
-
-
+    @staticmethod
+    async def remove_member(data: dict):
+        async with session_factory() as session:
+            await session.execute(
+                delete(ProjectMembership)
+                .where(ProjectMembership.user_id == data["user_id"])
+                .where(ProjectMembership.project_id == data["project_id"])
+            )
+            await session.commit()
 
     @staticmethod
-    async def create_stage():
+    async def assign_role(data: dict):
         async with session_factory() as session:
-            stage1 = Stage(name="ToDo", position=1, limit=None, project_id=1)
-            stage2 = Stage(name="In Progress", position=2, limit=5, project_id=1)
-            stage3 = Stage(name="Done", position=3, limit=3, project_id=1)
-            stage4 = Stage(name="ToDo", position=3, limit=3, project_id=2)
-            session.add_all([stage1, stage2, stage3, stage4])
+            result = await session.execute(
+                select(ProjectMembership)
+                .where(ProjectMembership.project_id == data["project_id"])
+                .where(ProjectMembership.user_id == data["user_id"])
+            )
+            membership = result.scalar_one_or_none()
+
+            if not membership:
+                return False
+            
+            membership.role_id = data["role_id"]
+            await session.commit()
+            return True
+
+    @staticmethod
+    async def create_stage(data: dict):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(func.max(Stage.position))
+                .where(Stage.project_id == data["project_id"])
+            )
+            max_position = result.scalar() or 0
+
+            stage = Stage(name=data["name"], position=max_position+1, limit=None, project_id=data["project_id"])
+            
+            session.add(stage)
             await session.flush()
             await session.commit()
+
+    @staticmethod
+    async def remove_stage(data: dict):
+        async with session_factory() as session:
+            await session.execute(
+                delete(Stage)
+                .where(Stage.id == data["stage_id"])
+                .where(Stage.project_id == data["project_id"])
+            )
+            await session.commit()
+
+    @staticmethod
+    async def reorder_stages(project_id: int):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(Stage)
+                .where(Stage.project_id == project_id)
+                .order_by(Stage.position)
+            )
+            stages = result.scalars().all()
+
+            for index, stage in enumerate(stages, start=1):
+                stage.position = index
+            
+            await session.commit()
+
+    @staticmethod
+    async def move_stage(stage_id: int, data: dict):
+        async with session_factory() as session:
+            stage = await session.get(Stage, stage_id)
+            if not stage:
+                return False
+            
+            old_position = stage.position
+            project_id = stage.project_id
+
+            if old_position == data["new_position"]:
+                return True
+            
+            if data["new_position"] > old_position:
+                await session.execute(
+                    update(Stage)
+                    .where(Stage.project_id == project_id)
+                    .where(Stage.position > old_position)
+                    .where(Stage.position <= data["new_position"])
+                    .values(position=Stage.position-1)
+                )
+            else:
+                await session.execute(
+                    update(Stage)
+                    .where(Stage.project_id == project_id)
+                    .where(Stage.position >= data["new_position"])
+                    .where(Stage.position < old_position)
+                    .values(position=Stage.position+1)
+                )
+
+            stage.position = data["new_position"]
+            await session.commit()
+            return True
+        
+    @staticmethod
+    async def get_stages(project_id: int):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(Stage)
+                .where(Stage.project_id == project_id)
+                .order_by(Stage.position)
+            )
+            projects = result.scalars().all()
+            return projects
+
+    @staticmethod
+    async def get_tasks_by_project_id(project_id: int):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(
+                    Task.id,
+                    Task.title,
+                    Task.status,
+                    Task.stage_id,
+                    Task.creator_id,
+                    Task.assigned_user_id,
+                    Stage.position
+                )
+                .join(Stage, Task.stage_id == Stage.id)
+                .where(Stage.project_id == project_id)
+                .order_by(Stage.position)
+            )
+
+            return [dict(row._asdict()) for row in result.all()]
+    
+    @staticmethod
+    async def get_tasks_by_stage_id(stage_id: int):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(Task)
+                .where(Task.stage_id == stage_id)
+            )
+            tasks = result.scalars().all()
+            return tasks
 
     @staticmethod
     async def create_task():
