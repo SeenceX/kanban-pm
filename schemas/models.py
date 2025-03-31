@@ -18,6 +18,7 @@ from sqlalchemy import (
     text
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from schemas.database import Base
 
@@ -89,9 +90,11 @@ class ProjectMembership(Base):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True)
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"))
 
     user: Mapped["User"] = relationship(back_populates="project_memberships")
     project: Mapped["Project"] = relationship(back_populates="user_memberships")
+    role: Mapped["Role"] = relationship(back_populates="role_memberships")
 
 
 
@@ -155,3 +158,12 @@ class Comment(Base):
     author: Mapped["User"] = relationship(back_populates="comments", foreign_keys=[author_id])
 
     created_at: Mapped[created_at]
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id: Mapped[intpk]
+    name: Mapped[str]
+    permissions: Mapped[List[str]] = mapped_column(ARRAY(String))
+
+    role_memberships: Mapped[List["ProjectMembership"]] = relationship(back_populates="role")
