@@ -1,23 +1,36 @@
 from fastapi import APIRouter, HTTPException
-from models import User
+from pydantic import BaseModel, Field, EmailStr
+from schemas.queries.orm import AsyncORM
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
 
-@router.get("/users/{user_id}")
-async def read_user(user_id: int):
-    """Возвращает информацию о пользователе по его ID."""
-    # TODO: Получить пользователя из базы данных по user_id
-    if not user_exists(user_id):
-        raise HTTPException(status_code=404, detail="User not found")
-    user = User(id=user_id, name="John Doe", email="john.doe@example.com", role="user")
-    return user
 
-@router.post("/users/")
-async def create_user(user: User):
-    """Создает нового пользователя"""
-    # TODO: Сохранить пользователя в базу данных
-    return user
+class NewUser(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
 
-def user_exists(user_id: int) -> bool:
-    """Заглушка для проверки существования пользователя"""
-    return False
+@router.get("/", summary="Get all users")
+async def get_users():
+    return await AsyncORM.select_users()
+
+@router.get("/{id}", summary="Get user by id")
+async def get_user_by_id(user_id: int):
+    users = await AsyncORM.select_users()
+    for user in users:
+        if user.id == user_id:
+            return user
+    raise HTTPException(status_code=404, detail="User not found")
+
+@router.post("/", summary="Post user")
+async def create_user(new_user: NewUser):
+    user = {
+        "username": new_user.username,
+        "password": new_user.password,
+        "email": new_user.email
+    }
+    
+    await AsyncORM.insert_user(user)
