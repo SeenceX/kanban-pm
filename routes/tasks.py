@@ -4,7 +4,7 @@ from schemas.queries.orm import AsyncORM
 
 router = APIRouter(
     prefix="/tasks",
-    tags=["Task"]
+    tags=["Tasks"]
 )
 
 
@@ -13,6 +13,7 @@ class NewTask(BaseModel):
     description: str
     status: bool
     stage_id: int
+    creator_id: int
     assigned_user_id: int | None
 
 
@@ -46,30 +47,53 @@ async def get_tasks_by_project_id(project_id: int):
 
     return tasks
 
-@router.post("/", tags=["ToDo"], summary="Create a new task")
+@router.post("/", summary="Create a new task")
 async def create_task(task_data: NewTask):
-    pass
+    data = {
+        "title": task_data.title,
+        "description": task_data.description,
+        "status": task_data.status,
+        "stage_id": task_data.stage_id,
+        "creator_id": task_data.creator_id,
+        "assigned_user_id": task_data.assigned_user_id
+    }
+    await AsyncORM.create_task(data)
 
-@router.patch("/{task_id}", tags=["ToDo"], summary="Move task to another stage")
+# TODO: Здесь нужно будет дописать проверку на существование Stage
+@router.patch("/{task_id}", summary="Move task to another stage")
 async def move_task(task_id: int, stage_id: MoveTask):
-    pass
+    data = {
+        "stage_id": stage_id.stage_id,
+        "task_id": task_id
+    }
 
-@router.delete("/{task_id}", tags=["ToDo"], summary="Remove a task by id")
+    await AsyncORM.move_task(data)
+
+@router.delete("/{task_id}", summary="Remove a task by id")
 async def remove_task(task_id: int):
-    pass
+    return await AsyncORM.delete_task(task_id)
 
-@router.patch("/{task_id}/description", tags=["ToDo"], summary="Update the description of the task")
+#TODO: Дописать проверку на существование Task
+@router.patch("/{task_id}/description", summary="Update the description of the task")
 async def update_description(task_id: int, update_data: TaskDescriptionUpdate):
-    pass
+    await AsyncORM.update_description(task_id, update_data.description)
 
-@router.patch("/executor/{user_id}", tags=["ToDo"], summary="Accept task")
+#TODO: Дописать проверку на существование Task и User
+@router.patch("/executor/{user_id}", summary="Accept task")
 async def assign_to(user_id: int, assign_data: TaskExecutor):
-    pass
+    await AsyncORM.assing_to(assign_data.task_id, user_id)
 
-@router.patch("/{task_id}/status", tags=["ToDo"], summary="Change the status of the task")
+#TODO: Проверку на существование Task
+@router.patch("/{task_id}/status", summary="Change the status of the task")
 async def change_status(task_id: int):
-    pass
+    await AsyncORM.set_status(task_id)
 
-@router.get("/{task_id}/comments", tags=["ToDo"], summary="Get the comments on the task")
+#TODO: Проверку на существование Task
+@router.get("/{task_id}/comments", summary="Get the comments on the task")
 async def get_comments(task_id: int):
-    pass
+    result = await AsyncORM.get_comments(task_id)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="There are no comments")
+    
+    return result

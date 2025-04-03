@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, and_, cast, func, insert, inspect, or_, select, text, delete, update
+from sqlalchemy import Integer, and_, cast, func, insert, inspect, not_, or_, select, text, delete, update
 from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from asyncpg.exceptions import UniqueViolationError
@@ -226,6 +226,22 @@ class AsyncORM:
             return True
         
     @staticmethod
+    async def set_limit(data: dict):
+        async with session_factory() as session:
+            stage = await session.get(Stage, data["stage_id"])
+            if not stage:
+                return False
+            
+            await session.execute(
+                update(Stage)
+                .where(Stage.id == data["stage_id"])
+                .values(limit=data["limit"]) 
+            )
+
+            await session.commit()
+            return True
+        
+    @staticmethod
     async def get_stages(project_id: int):
         async with session_factory() as session:
             result = await session.execute(
@@ -267,29 +283,105 @@ class AsyncORM:
             return tasks
 
     @staticmethod
-    async def create_task():
+    async def create_task(data: dict):
         async with session_factory() as session:
             # title, description, status, stage_id, creator_id, assigned_user_id
-            task1 = Task(title="task1", description="Почистить кэш", status=False, stage_id=1, creator_id=2, assigned_user_id=None)
-            task2 = Task(title="task2", description="Разработать запрос на удаление", status=False, stage_id=2, creator_id=1, assigned_user_id=1)
-            task3 = Task(title="task3", description="Разработать интерфейс", status=False, stage_id=2, creator_id=1, assigned_user_id=2)
-            task4 = Task(title="task4", description="Разработать API", status=True, stage_id=3, creator_id=1, assigned_user_id=None)
-            task5 = Task(title="task5", description="Протестировать API", status=False, stage_id=1, creator_id=1, assigned_user_id=None)
-            task6 = Task(title="task6", description="Улыбнуться", status=False, stage_id=1, creator_id=2, assigned_user_id=2)
-            
-            session.add_all([task1, task2, task3, task4, task5, task6])
+           # task1 = Task(title="task1", description="Почистить кэш", status=False, stage_id=1, creator_id=2, assigned_user_id=None)
+            task = Task(
+                title=data["title"],
+                description=data["description"],
+                status=data["status"],
+                stage_id=data["stage_id"],
+                creator_id=data["creator_id"],
+                assigned_user_id=data["assigned_user_id"]
+            )
+
+            session.add(task)
             await session.flush()
             await session.commit()
 
     @staticmethod
-    async def create_comment():
+    async def move_task(data: dict):
         async with session_factory() as session:
-            comment1 = Comment(text="Привет!", task_id=2, author_id=1)
-            comment2 = Comment(text="Привет!", task_id=2, author_id=2)
-            comment3 = Comment(text="Получается?", task_id=2, author_id=1)
-            comment4 = Comment(text="Да", task_id=2, author_id=2)
-            comment5 = Comment(text="Нужно обдумать", task_id=5, author_id=1)
+            await session.execute(
+                    update(Task)
+                    .where(Task.id == data["task_id"])
+                    .values(stage_id=data["stage_id"])
+                )
+            
+            await session.commit()
 
-            session.add_all([comment1, comment2, comment3, comment4, comment5])
+    @staticmethod
+    async def delete_task(task_id: int):
+        async with session_factory() as session:
+            await session.execute(
+                delete(Task)
+                .where(Task.id == task_id)
+            )
+            await session.commit()
+        
+    @staticmethod
+    async def update_description(task_id: int, new_description: str):
+        async with session_factory() as session:
+            await session.execute(
+                update(Task)
+                .where(Task.id == task_id)
+                .values(description=new_description)
+            )
+
+            await session.commit()
+
+    @staticmethod
+    async def assing_to(task_id: int, user_id: int):
+        async with session_factory() as session:
+            await session.execute(
+                update(Task)
+                .where(Task.id == task_id)
+                .values(assigned_user_id=user_id)
+            )
+
+            await session.commit()
+
+    @staticmethod
+    async def set_status(task_id: int):
+        async with session_factory() as session:
+            await session.execute(
+                update(Task)
+                .where(Task.id == task_id)
+                .values(status=not_(Task.status))
+            )
+
+            await session.commit()
+
+    @staticmethod
+    async def get_comments(task_id: int):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(Comment)
+                .where(Comment.task_id == task_id)
+                .order_by(Comment.created_at)
+            )
+            return result.scalars().all()
+            
+
+    @staticmethod
+    async def create_comment(data: dict):
+        async with session_factory() as session:
+            comment = Comment(
+                text=data["text"],
+                task_id=data["task_id"],
+                author_id=data["author_id"]
+            )
+
+            session.add(comment)
             await session.flush()
+            await session.commit()
+
+    @staticmethod
+    async def remove_comment(comment_id: int):
+        async with session_factory() as session:
+            await session.execute(
+                delete(Comment)
+                .where(Comment.id == comment_id)
+            )
             await session.commit()

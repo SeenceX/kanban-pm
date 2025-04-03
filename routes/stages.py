@@ -21,6 +21,9 @@ class MoveStage(BaseModel):
     new_position: int = Field(..., gt=0, description="Новая позиция (начиная с 1)")
 
 
+class NewLimit(BaseModel):
+    limit: int = Field(gt=0, description="Количество незавершенных задач этапа")
+
 
 @router.post("/create_stage", summary="Add stage to project")
 async def create_stage(stage_data: NewStage):
@@ -61,6 +64,16 @@ async def move_stage(stage_id: int, move_stage_data: MoveStage):
 async def get_stages(project_id: int):
     return await AsyncORM.get_stages(project_id)
 
-@router.patch("/limit", tags=["ToDo"], summary="set the limit on the stage")
-async def set_limit():
-    pass
+@router.patch("{stage_id}/limit", summary="set the limit on the stage")
+async def set_limit(stage_id: int, new_limit: NewLimit):
+    data = {
+        "stage_id": stage_id,
+        "limit": new_limit.limit
+    }
+    
+    result = await AsyncORM.set_limit(data)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    
+    return {"status": "success", "message": "The stage limit has been updated"}
