@@ -15,7 +15,10 @@ class NewUser(BaseModel):
 
 @router.get("/", summary="Get all users")
 async def get_users():
-    return await AsyncORM.select_users()
+    res = await AsyncORM.select_users()
+    if not res:
+        raise HTTPException(status_code=404, detail="Users not found")
+    return res 
 
 @router.get("/{id}", summary="Get user by id")
 async def get_user_by_id(user_id: int):
