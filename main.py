@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
-from routes import comments, users, projects, stages, members, tasks
+from api import comments, users, projects, stages, members, tasks
 import uvicorn
-from schemas.queries.orm import AsyncORM
+from models.queries.orm import AsyncORM
 from pydantic import BaseModel, EmailStr, Field
 import asyncio
 

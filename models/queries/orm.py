@@ -3,8 +3,8 @@ from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from asyncpg.exceptions import UniqueViolationError
 
-from schemas.database import Base, async_engine, session_factory
-from schemas.models import User, Project, ProjectMembership, Stage, Task, Comment, Role
+from models.database import Base, async_engine, session_factory
+from models.models import User, Project, ProjectMembership, Stage, Task, Comment, Role
 
 
 class AsyncORM:
