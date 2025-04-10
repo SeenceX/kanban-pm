@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
 
     class Config:
-        env_file = "./api/security/.env"
+        env_file = "./backend/api/security/.env"
 
 
 def get_authx_config() -> AuthXConfig:
