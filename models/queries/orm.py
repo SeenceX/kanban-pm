@@ -3,12 +3,17 @@ from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from asyncpg.exceptions import UniqueViolationError
 
+from passlib.context import CryptContext
+
 from models.database import Base, async_engine, session_factory
 from models.models import User, Project, ProjectMembership, Stage, Task, Comment, Role
 
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
 class AsyncORM:
-    
+
     @staticmethod
     async def initial_startup():
         async with async_engine.begin() as conn:
@@ -18,8 +23,8 @@ class AsyncORM:
     @staticmethod
     async def insert_simple_data():
         async with session_factory() as session:
-            user_andrew = User(username="andrew", email="andrew@mail.ru", password="hash1")
-            user_maria = User(username="maria", email="maria@gmail.com", password="hash2")
+            user_andrew = User(username="andrew", email="andrew@mail.ru", password=pwd_context.hash("hash1"))
+            user_maria = User(username="maria", email="maria@gmail.com", password=pwd_context.hash("hash2"))
             session.add_all([user_andrew, user_maria])
             await session.flush()
 
@@ -60,12 +65,28 @@ class AsyncORM:
             await session.commit()
 
     @staticmethod
+    async def authenticate_user(email: str, password: str):
+        async with session_factory() as session:
+            result = await session.execute(
+                select(User)
+                .where(User.email == email)
+                )
+            user = result.scalar_one_or_none()
+            print(user)
+            if not user or not pwd_context.verify(password, user.password):
+                return None
+            return user
+
+    @staticmethod
     async def insert_user(user_data: dict) -> int:
         async with session_factory() as session:
+            
+            hashed_password = pwd_context.hash(user_data["password"])
+
             new_user = User(
                 username=user_data["username"],
                 email=user_data["email"],
-                password=user_data["password"]
+                password=hashed_password
                 )
 
             session.add(new_user)

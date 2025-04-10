@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response, Depends
 from models.queries.orm import AsyncORM
-from schemes.users import User, NewUser
+from schemes.users import User, NewUser, UserLogin
+from .security.security import security
+
 
 
 router = APIRouter(
@@ -8,7 +10,24 @@ router = APIRouter(
     tags=["Users"]
 )
 
-@router.get("/", summary="Get all users")
+
+@router.post("/login")
+async def login(credits: UserLogin, response: Response):
+    # Тут сделать запрос в ORM
+    email = credits.email
+    password = credits.password
+    user = await AsyncORM.authenticate_user(email, password)
+
+    if not user:
+        raise HTTPException(
+            status_code=401, detail="Incorrect username or password"
+        )
+
+    token = security.create_access_token(uid="12345")
+    response.set_cookie(security.config.JWT_ACCESS_COOKIE_NAME, token)
+    return {"access_token": token}
+
+@router.get("/", summary="Get all users", dependencies=[Depends(security.access_token_required)])
 async def get_users() -> list[User]:
     res = await AsyncORM.select_users()
     if not res:

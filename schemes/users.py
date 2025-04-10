@@ -7,6 +7,11 @@ class User(BaseModel):
     email: EmailStr
 
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
 class NewUser(BaseModel):
     username: str
     password: str
