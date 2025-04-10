@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, EmailStr
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
 from models.queries.orm import AsyncORM
 
 router = APIRouter(

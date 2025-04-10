@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, EmailStr
 from models.queries.orm import AsyncORM
+from schemes.tasks import Task, NewTask, MoveTask, TaskDescriptionUpdate, TaskExecutor, TaskComments
+
 
 router = APIRouter(
     prefix="/tasks",
@@ -8,29 +9,8 @@ router = APIRouter(
 )
 
 
-class NewTask(BaseModel):
-    title: str = Field(max_length=50)
-    description: str
-    status: bool
-    stage_id: int
-    creator_id: int
-    assigned_user_id: int | None
-
-
-class MoveTask(BaseModel):
-    stage_id: int
-
-
-class TaskDescriptionUpdate(BaseModel):
-    description: str
-
-
-class TaskExecutor(BaseModel):
-    task_id: int
-
-
 @router.get("/stage/{stage_id}", summary="Get all task of a stage by stage_id")
-async def get_tasks_by_stage_id(stage_id: int):
+async def get_tasks_by_stage_id(stage_id: int) -> list[Task]:
     tasks = await AsyncORM.get_tasks_by_stage_id(stage_id)
 
     if not tasks:
@@ -39,7 +19,7 @@ async def get_tasks_by_stage_id(stage_id: int):
     return tasks
 
 @router.get("/project/{project_id}", summary="Get all tasks of a project by project_id")
-async def get_tasks_by_project_id(project_id: int):
+async def get_tasks_by_project_id(project_id: int) -> list[Task]:
     tasks = await AsyncORM.get_tasks_by_project_id(project_id)
 
     if not tasks:
@@ -90,7 +70,7 @@ async def change_status(task_id: int):
 
 #TODO: Проверку на существование Task
 @router.get("/{task_id}/comments", summary="Get the comments on the task")
-async def get_comments(task_id: int):
+async def get_comments(task_id: int) -> list[TaskComments]:
     result = await AsyncORM.get_comments(task_id)
 
     if not result:

@@ -1,28 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, EmailStr
 from models.queries.orm import AsyncORM
+from schemes.stages import Stage, NewStage, RemoveStage, MoveStage, NewLimit
+
 
 router = APIRouter(
     prefix="/project/stages",
     tags=["Project stages"]
 )
-
-class NewStage(BaseModel):
-    name: str
-    project_id: int
-
-
-class RemoveStage(BaseModel):
-    stage_id: int
-    project_id: int
-
-
-class MoveStage(BaseModel):
-    new_position: int = Field(..., gt=0, description="Новая позиция (начиная с 1)")
-
-
-class NewLimit(BaseModel):
-    limit: int = Field(gt=0, description="Количество незавершенных задач этапа")
 
 
 @router.post("/create_stage", summary="Add stage to project")
@@ -61,7 +45,7 @@ async def move_stage(stage_id: int, move_stage_data: MoveStage):
     return {"status": "success", "message": "Stage position updated"}
 
 @router.get("/{project_id}", summary="Get all stages of a project")
-async def get_stages(project_id: int):
+async def get_stages(project_id: int) -> list[Stage]:
     return await AsyncORM.get_stages(project_id)
 
 @router.patch("{stage_id}/limit", summary="set the limit on the stage")

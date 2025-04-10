@@ -22,7 +22,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 
 from models.database import Base
 
-intpk = Annotated[int, mapped_column(primary_key=True)]
+intpk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
 created_at = Annotated[datetime.datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
 updated_at = Annotated[datetime.datetime, mapped_column(
     server_default=text("TIMEZONE('utc', now())"),
@@ -34,7 +34,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[intpk]
-    username: Mapped[str] = mapped_column(String(20), unique=True)
+    username: Mapped[str] = mapped_column(String(20))
     email: Mapped[str] = mapped_column(String(50), unique=True)
     password: Mapped[str]
 

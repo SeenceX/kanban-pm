@@ -60,7 +60,7 @@ class AsyncORM:
             await session.commit()
 
     @staticmethod
-    async def insert_user(user_data: dict):
+    async def insert_user(user_data: dict) -> int:
         async with session_factory() as session:
             new_user = User(
                 username=user_data["username"],
@@ -70,7 +70,13 @@ class AsyncORM:
 
             session.add(new_user)
             await session.flush()
+
+            user_id = new_user.id
+            print(f"Generated ID: ", user_id)
+
             await session.commit()
+
+            return user_id
 
 
     @staticmethod

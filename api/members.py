@@ -1,27 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, EmailStr
 from models.queries.orm import AsyncORM
+from schemes.members import NewMember, AssignRole, RemoveMember
+
 
 router = APIRouter(
     prefix="/project/members",
     tags=["Project members"]
 )
-
-
-class NewMember(BaseModel):
-    user_email: EmailStr
-    project_id: int
-
-
-class AssignRole(BaseModel):
-    project_id: int
-    user_id: int
-    role_id: int
-
-
-class RemoveMember(BaseModel):
-    project_id: int
-    user_id: int
 
 
 @router.post("/add", summary="Add member to project")
