@@ -1,1 +1,0 @@
-# Kanban project management
