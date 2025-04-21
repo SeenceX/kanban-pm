@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response, Depends
 from models.queries.orm import AsyncORM
 from schemes.users import User, NewUser, UserLogin
-from .security.security import security
+from api.security.security import security
 
 
 
