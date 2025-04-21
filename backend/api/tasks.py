@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from models.queries.orm import AsyncORM
-from schemes.tasks import Task, NewTask, MoveTask, TaskDescriptionUpdate, TaskExecutor, TaskComments
+from backend.models.queries.orm import AsyncORM
+from backend.schemes.tasks import Task, NewTask, MoveTask, TaskDescriptionUpdate, TaskExecutor, TaskComments
 
 
 router = APIRouter(

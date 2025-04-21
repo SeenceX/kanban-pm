@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
-from models.queries.orm import AsyncORM
+from backend.models.queries.orm import AsyncORM
 
 router = APIRouter(
     prefix="/tasks/comments",

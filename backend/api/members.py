@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from models.queries.orm import AsyncORM
-from schemes.members import NewMember, AssignRole, RemoveMember
+from backend.models.queries.orm import AsyncORM
+from backend.schemes.members import NewMember, AssignRole, RemoveMember
 
 
 router = APIRouter(

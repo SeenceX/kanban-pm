@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from models.queries.orm import AsyncORM
-from schemes.stages import Stage, NewStage, RemoveStage, MoveStage, NewLimit
+from backend.models.queries.orm import AsyncORM
+from backend.schemes.stages import Stage, NewStage, RemoveStage, MoveStage, NewLimit
 
 
 router = APIRouter(

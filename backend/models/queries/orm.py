@@ -5,8 +5,8 @@ from asyncpg.exceptions import UniqueViolationError
 
 from passlib.context import CryptContext
 
-from models.database import Base, async_engine, session_factory
-from models.models import User, Project, ProjectMembership, Stage, Task, Comment, Role
+from backend.models.database import Base, async_engine, session_factory
+from backend.models.models import User, Project, ProjectMembership, Stage, Task, Comment, Role
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
