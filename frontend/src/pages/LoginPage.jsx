@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext'; // Предполагается, что у вас есть AuthContext
+import { useAuth } from '../context/AuthContext'; 
 import { Link, useNavigate } from 'react-router';
 import '../styles/LoginPage.css';
 
@@ -7,7 +7,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth(); // Функция login из вашего контекста
+  const { login } = useAuth(); 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {

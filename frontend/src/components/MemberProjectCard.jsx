@@ -1,11 +1,13 @@
-export function MemberProjectCard(){
+import { Link } from "react-router"
+
+export function MemberProjectCard({project}){
     return (
-        <a className="member-card" href="#">
+        <Link to={`/project/${project.id}`} className="member-card" href="#">
             <div className="member-card-inner">
             <p className="member-card-name">
-                Курс Fullstack-разработчик на Python
+                {project.title}
             </p>
             </div>
-        </a>
+        </Link>
     )
 }

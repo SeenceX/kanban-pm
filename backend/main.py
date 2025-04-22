@@ -3,6 +3,8 @@ from backend.api import comments, users, projects, stages, members, tasks
 import uvicorn
 from backend.models.queries.orm import AsyncORM
 from pydantic import BaseModel, EmailStr, Field
+from fastapi.middleware.cors import CORSMiddleware
+
 import asyncio
 
 app = FastAPI(
@@ -35,6 +37,22 @@ app = FastAPI(
             "description": "Операции с комментариями"
         }
     ]
+)
+
+origins = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://0.0.0.0:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 app.include_router(users.router)

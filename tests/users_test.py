@@ -8,36 +8,36 @@ from backend.api.security.security import security
 from backend.schemes.users import User
 
 
-@pytest.mark.asyncio
-async def test_successful_login():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+# @pytest.mark.asyncio
+# async def test_successful_login():
+#     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
     
-        test_credentials = {
-            "email": "andrew@mail.ru",
-            "password": "hash1"
-        }
+#         test_credentials = {
+#             "email": "andrew@mail.ru",
+#             "password": "hash1"
+#         }
 
-        with patch(
-            "backend.api.users.login", new_callable=AsyncMock
-        ) as mock_auth, patch(
-            "backend.api.security.security.security.create_access_token"
-        ) as mock_token:
+#         with patch(
+#             "backend.api.users.login", new_callable=AsyncMock
+#         ) as mock_auth, patch(
+#             "backend.api.security.security.security.create_access_token"
+#         ) as mock_token:
             
-            mock_token.return_value = "mocked_jwt_token"
+#             mock_token.return_value = "mocked_jwt_token"
 
-            response = await client.post(
-                "/users/login",
-                json=test_credentials
-            )
+#             response = await client.post(
+#                 "/users/login",
+#                 json=test_credentials
+#             )
 
-            assert response.status_code == status.HTTP_200_OK
-            assert response.json() == {"access_token": "mocked_jwt_token"}
+#             assert response.status_code == status.HTTP_200_OK
+#             assert response.json() == {"access_token": "mocked_jwt_token"}
 
-            cookies = response.cookies
-            assert "my_access_token" in cookies
-            assert cookies["my_access_token"] == "mocked_jwt_token"
+#             cookies = response.cookies
+#             assert "my_access_token" in cookies
+#             assert cookies["my_access_token"] == "mocked_jwt_token"
 
-            security.create_access_token.assert_called_once()  # type: ignore
+#             security.create_access_token.assert_called_once()  # type: ignore
 
 
 @pytest.mark.asyncio

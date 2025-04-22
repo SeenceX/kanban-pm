@@ -1,15 +1,16 @@
+import { Link } from 'react-router'
 import members from '../img/members.svg'
 import options from '../img/options.svg'
 
 
-export function FounderProjectCard(){
+export function FounderProjectCard({project}){
     return (
         <div className="founder-card">
-            <a href="#">
+            <Link to={`/project/${project.id}`}>
             <div className="card-name">
-                Разработка жидкостного ракетного двигателя (ЖРД)
+                {project.title}
             </div>
-            </a>
+            </Link>
             <div className="card-controls">
             <div className="card-members">
                 <img src={members} alt="members"/>

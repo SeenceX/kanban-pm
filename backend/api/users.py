@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Response, Depends
 from backend.models.queries.orm import AsyncORM
 from backend.schemes.users import User, NewUser, UserLogin
 from backend.api.security.security import security
+from datetime import timedelta
 
 
 
@@ -13,7 +14,7 @@ router = APIRouter(
 
 @router.post("/login")
 async def login(credits: UserLogin, response: Response):
-    # Тут сделать запрос в ORM
+
     email = credits.email
     password = credits.password
     user = await AsyncORM.authenticate_user(email, password)
@@ -23,9 +24,27 @@ async def login(credits: UserLogin, response: Response):
             status_code=401, detail="Incorrect username or password"
         )
 
-    token = security.create_access_token(uid="12345")
-    response.set_cookie(security.config.JWT_ACCESS_COOKIE_NAME, token)
-    return {"access_token": token, "data": {"id": user.id, "email": user.email}}
+    access_token = security.create_access_token(
+        uid=str(user.id),
+        data={
+            "email": user.email,
+            "username": user.username
+        },
+        expires_delta=timedelta(minutes=10)
+    )
+
+    security.set_access_cookies(access_token, response)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username
+        }
+    }
+
 
 @router.get("/", summary="Get all users", dependencies=[Depends(security.access_token_required)])
 async def get_users() -> list[User]:

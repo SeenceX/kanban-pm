@@ -64,6 +64,8 @@ class AsyncORM:
             role3 = Role(name="guest", permissions=["view"])
             session.add_all([role1, role2, role3])
 
+            project_membership1 = ProjectMembership(1, )
+
             await session.commit()
 
     @staticmethod
@@ -118,6 +120,22 @@ class AsyncORM:
             result = await session.execute(query)
             projects = result.scalars().all()
             return projects
+        
+
+    @staticmethod
+    async def get_project_memberships(id: int):
+        async with session_factory() as session:
+            query = (
+                select(Project)
+                .join(ProjectMembership, Project.id == ProjectMembership.project_id)
+                .where(
+                    ProjectMembership.user_id == id,
+                    ProjectMembership.role_id == 2
+                )
+            )
+
+            result = await session.execute(query)
+            return result.scalars().all()
 
     @staticmethod
     async def create_project(project_data: dict):
@@ -131,6 +149,8 @@ class AsyncORM:
             
             await session.flush()
 
+            project_id = new_project.id
+
             new_project_membership = ProjectMembership(
                 user_id=project_data["creator_id"],
                 project_id=new_project.id,
@@ -140,6 +160,8 @@ class AsyncORM:
             session.add(new_project_membership)
 
             await session.commit()
+
+            return project_id
 
     @staticmethod
     async def add_member(data: dict):
