@@ -35,10 +35,10 @@ async def get_users() -> list[User]:
     return res 
 
 @router.get("/{id}", summary="Get user by id")
-async def get_user_by_id(user_id: int) -> User:
+async def get_user_by_id(id: int) -> User:
     users = await AsyncORM.select_users()
     for user in users:
-        if user.id == user_id:
+        if user.id == id:
             return user
     raise HTTPException(status_code=404, detail="User not found")
 
