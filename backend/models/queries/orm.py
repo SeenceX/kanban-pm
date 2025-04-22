@@ -64,7 +64,6 @@ class AsyncORM:
             role3 = Role(name="guest", permissions=["view"])
             session.add_all([role1, role2, role3])
 
-            project_membership1 = ProjectMembership(1, )
 
             await session.commit()
 
