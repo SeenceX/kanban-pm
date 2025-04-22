@@ -21,7 +21,7 @@ class AsyncORM:
             await conn.run_sync(Base.metadata.create_all)
 
     @staticmethod
-    async def insert_simple_data():
+    async def insert_sample_data():
         async with session_factory() as session:
             user_andrew = User(username="andrew", email="andrew@mail.ru", password=pwd_context.hash("hash1"))
             user_maria = User(username="maria", email="maria@gmail.com", password=pwd_context.hash("hash2"))
@@ -60,7 +60,9 @@ class AsyncORM:
             await session.flush()
 
             role1 = Role(name="creator", permissions=["all"])
-            session.add(role1)
+            role2 = Role(name="member", permissions=["view", "comment", "execute", "move"])
+            role3 = Role(name="guest", permissions=["view"])
+            session.add_all([role1, role2, role3])
 
             await session.commit()
 

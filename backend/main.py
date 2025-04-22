@@ -46,7 +46,7 @@ app.include_router(comments.router)
 
 async def main():
     await AsyncORM.initial_startup()
-    await AsyncORM.insert_simple_data()
+    await AsyncORM.insert_sample_data()
 
 if __name__ == "__main__":
     asyncio.run(main())

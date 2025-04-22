@@ -25,7 +25,7 @@ async def login(credits: UserLogin, response: Response):
 
     token = security.create_access_token(uid="12345")
     response.set_cookie(security.config.JWT_ACCESS_COOKIE_NAME, token)
-    return {"access_token": token}
+    return {"access_token": token, "data": {"id": user.id, "email": user.email}}
 
 @router.get("/", summary="Get all users", dependencies=[Depends(security.access_token_required)])
 async def get_users() -> list[User]:
